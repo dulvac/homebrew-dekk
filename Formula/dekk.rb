@@ -1,8 +1,8 @@
 class Dekk < Formula
   desc "Present markdown-authored slides with a branded dark cinematic visual identity"
   homepage "https://github.com/dulvac/dekk"
-  url "https://github.com/dulvac/dekk/releases/download/v0.0.0/dekk-0.0.0.tar.gz"
-  sha256 "0000000000000000000000000000000000000000000000000000000000000000"
+  url "https://github.com/dulvac/dekk/releases/download/v0.1.0/dekk-0.1.0.tar.gz"
+  sha256 "91624e4d767ce6b0b7981625bcd212296bea54c95ca5fcf5215872cb6e70ddde"
   license "MIT"
 
   depends_on "node@22"
