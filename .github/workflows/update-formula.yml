@@ -1,0 +1,57 @@
+name: Update Formula
+
+on:
+  repository_dispatch:
+    types: [update-formula]
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Update formula
+        env:
+          PAYLOAD_VERSION: ${{ github.event.client_payload.version }}
+          PAYLOAD_SHA256: ${{ github.event.client_payload.sha256 }}
+          PAYLOAD_URL: ${{ github.event.client_payload.url }}
+        run: |
+          # Validate inputs are safe (alphanumeric, dots, hyphens, slashes, colons)
+          if ! echo "$PAYLOAD_VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+'; then
+            echo "Invalid version format: $PAYLOAD_VERSION"
+            exit 1
+          fi
+          if ! echo "$PAYLOAD_SHA256" | grep -qE '^[a-f0-9]{64}$'; then
+            echo "Invalid SHA256 format"
+            exit 1
+          fi
+          if ! echo "$PAYLOAD_URL" | grep -qE '^https://github\.com/'; then
+            echo "Invalid URL: must start with https://github.com/"
+            exit 1
+          fi
+
+          # Use Python for safe string replacement (no sed injection)
+          python3 -c "
+          import re, sys
+          path = 'Formula/dekk.rb'
+          with open(path) as f:
+              content = f.read()
+          content = re.sub(r'url \"[^\"]*\"', 'url \"' + sys.argv[1] + '\"', content)
+          content = re.sub(r'sha256 \"[^\"]*\"', 'sha256 \"' + sys.argv[2] + '\"', content)
+          with open(path, 'w') as f:
+              f.write(content)
+          " "$PAYLOAD_URL" "$PAYLOAD_SHA256"
+
+      - name: Commit and push
+        env:
+          PAYLOAD_VERSION: ${{ github.event.client_payload.version }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Formula/dekk.rb
+          git diff --cached --quiet && echo "No changes" && exit 0
+          git commit -m "Update dekk to $PAYLOAD_VERSION"
+          git push
