@@ -8,13 +8,13 @@ class Dekk < Formula
   depends_on "node@22"
 
   def install
-    libexec.install "bin/dekk.js"
+    libexec.install "dekk.js"
     libexec.install "dist"
     libexec.install "package.json"
 
     (bin/"dekk").write <<~EOS
       #!/bin/bash
-      exec "#{Formula["node@22"].opt_bin}/node" "#{libexec}/bin/dekk.js" "$@"
+      exec "#{Formula["node@22"].opt_bin}/node" "#{libexec}/dekk.js" "$@"
     EOS
   end
 
